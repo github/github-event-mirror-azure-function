@@ -1,20 +1,26 @@
-import * as fs from 'fs';
-import * as yaml from 'yaml';
+import { readFileSync } from 'fs';
+import { parse as parseYaml } from 'yaml';
 import { EmitterWebhookEvent } from '@octokit/webhooks';
+
+// define filter config type
+interface FilterConfig {
+    include?: { [key: string]: { [key: string]: string | string[] } };
+    exclude?: { [key: string]: { [key: string]: string | string[] } };
+}
 
 // read in filter config, from a YAML file called "filter.yml" in the root of the repo
 // if the file doesn't exist, or is invalid YAML, we handle that gracefully
-let filter_config: any;
+let filter_config: FilterConfig | undefined;
 
 try {
-    filter_config = yaml.parse(fs.readFileSync('filter.yml', 'utf8'));
+    filter_config = parseYaml(readFileSync('filter.yml', 'utf8'));
 } catch (error) {
     // if the file doesn't exist, or can't be parsed, that's fine, we'll just use the default filter, which is to let everything through
     // we do log the error
     console.log(error);
 }
 
-export const eventFilter = (event: EmitterWebhookEvent): boolean => {
+export const eventFilter = !validateFilterConfig(filter_config) ? (_: EmitterWebhookEvent) => true : (event: EmitterWebhookEvent): boolean => {
     if (filter_config === undefined) return true;
 
     const event_name = event.name;
@@ -30,16 +36,33 @@ export const eventFilter = (event: EmitterWebhookEvent): boolean => {
     // we can include or exclude by any string-valued key in the payload, and we can match a single string, or an array of options
     const payload = event.payload as unknown as { [key: string]: unknown };
 
-    const include_filter = filter_config.include[event_name];
-    if (!applyFilter(payload, include_filter, true)) return false;
+    if (filter_config.include !== undefined && event_name in filter_config.include) {
+        const include_filter = filter_config.include[event_name];
+        if (!applyFilter(payload, include_filter, true)) return false;
+    }
 
-    const exclude_filter = filter_config.exclude[event_name];
-    if (applyFilter(payload, exclude_filter, false)) return false;
+    if (filter_config.exclude !== undefined && event_name in filter_config.exclude) {
+        const exclude_filter = filter_config.exclude[event_name];
+        if (applyFilter(payload, exclude_filter, false)) return false;
+    }
 
     return true;
 }
 
-function applyFilter(payload: { [key: string]: unknown }, filter: { [key: string]: String | Array<String> }, sense: boolean): boolean {
+function validateFilterConfig(filter_config: FilterConfig | undefined): boolean {
+    if (filter_config === undefined) {
+        console.error("Filter config is undefined");
+        return false;
+    }
+
+    if (filter_config.include === undefined && filter_config.exclude === undefined) {
+        console.error("Filter config has neither an include nor an exclude property");
+        return false;
+    }
+    return true;
+}
+
+function applyFilter(payload: { [key: string]: unknown }, filter: { [key: string]: string | string[] }, sense: boolean): boolean {
     if (filter === undefined) return sense;
 
     const matches: boolean = Object.keys(filter).every(key => {
