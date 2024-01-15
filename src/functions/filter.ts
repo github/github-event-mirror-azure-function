@@ -49,13 +49,13 @@ export const eventFilter = !validateFilterConfig(filter_config) ? (_: EmitterWeb
     return true;
 }
 
-function validateFilterConfig(filter_config: FilterConfig | undefined): boolean {
-    if (filter_config === undefined) {
+function validateFilterConfig(config: FilterConfig | undefined): boolean {
+    if (config === undefined) {
         console.error("Filter config is undefined");
         return false;
     }
 
-    if (filter_config.include === undefined && filter_config.exclude === undefined) {
+    if (config.include === undefined && config.exclude === undefined) {
         console.error("Filter config has neither an include nor an exclude property");
         return false;
     }
