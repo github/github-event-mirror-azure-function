@@ -8,39 +8,13 @@ To get this Azure Function working, you need to:
 
 Once that is done, you can create an Actions workflow on any repository that the GitHub App is installed for, that listens for the `repository_dispatch` event, and does whatever you want it to do.
 
+> ℹ️ when working with the Azure CLI, remember to use `az login` to log in to Azure, and `az logout` first if you are having problems
+
 ## Deploying the Azure Function
 
 You need to create an Azure Function App, and deploy the Azure Function to it.
 
-Before you deploy, you can choose to set a declarative filter for the GitHub events you want to listen for.
-
-This is done in the `fiter.yml` file, with the format shown in `filter.yml.example` and below:
-
-```yaml
-# Path: filter.yml
-
-# filter webhook events by type and payload, declaratively
-
-include:
-  secret_scanning_alert:
-    action: [created, dismissed, resolved, reopened]
-
-exclude:
-  secret_scanning_alert:
-    action: reopened
-  secret_scanning_alert_location:
-
-```
-
-The corresponding exclude filter for an event name is applied after the include filter.
-
-This example will include any event named `secret_scanning_alert` with an action of `created`, `dismissed`, or `resolved`, `reopened` and will exclude any event named `secret_scanning_alert` with an action of `reopened`. It will also exclude any event named `secret_scanning_alert_location`.
-
-The presence of an include filter here means that excluding `secret_scanning_alert_location` is redundant, as it will never be included in the first place, but it is included to show the syntax.
-
-If you do not want to use a filter, you can delete the `filter.yml` file, or leave it empty.
-
-You do not need to provide both an `include` and `exclude` key.
+Before you deploy, set a `filter.yml` if you wish to filter out certain events. See [filtering events](README.md#filtering-events) for more details.
 
 ### Creating the Functions App
 
@@ -71,7 +45,6 @@ AZURE_LOCATION=<location>
 AZURE_STORAGE_ACCOUNT=<storage account name>
 AZURE_FUNCTION_APP_NAME=<function app name>
 
-az login
 az account set --subscription "${AZURE_SUBSCRIPTION_ID}"
 az group create --name "${AZURE_RESOURCE_GROUP}" --location "${AZURE_LOCATION}"
 az storage account create --name "${AZURE_STORAGE_ACCOUNT}" --location "${AZURE_LOCATION}" --resource-group "${AZURE_RESOURCE_GROUP}" --sku Standard_LRS
@@ -97,7 +70,7 @@ Some of these steps assume you have zipped up the code of this function into `gi
 You can do that using:
 
 ```bash
-zip -r github-webhook-mirror.zip . -x 'node_modules/*' '.vscode/*' 'dist/*' 'local.settings.json' '.git/*' 'github-webhook-mirror.zip'
+zip -r github-webhook-mirror.zip . -x '.vscode/*' 'local.settings.json' '.git/*' '.github/*' '.gitignore' '.eslint*' '.funcignore' '*.md' 'CODEOWNERS' 'LICENSE' '*.ts' '*.js.map' 'jest.config.js' 'filter.yml.example' 'github-webhook-mirror.zip'
 ```
 
 #### Deploying with the Azure Portal
@@ -112,14 +85,22 @@ Select "Zip Deploy", and upload the `github-webhook-mirror.zip` file.
 
 #### Deploying with the Azure CLI
 
-> **TODO**: test this
+```bash
+AZURE_FUNCTION_APP_NAME=<function app name>
+
+npm run build
+func azure functionapp publish "${AZURE_FUNCTION_APP_NAME}" || echo "Failed to publish function app, try running 'az logout' then 'az login', then try again"
+```
+
+That may fail if it can't find the function app. If it does, you can try this alternative.
+
+If you have already zipped up the code of this function into `github-webhook-mirror.zip`, you can use:
 
 ```bash
 AZURE_SUBSCRIPTION_ID=<subscription id>
 AZURE_RESOURCE_GROUP=<resource group name>
 AZURE_FUNCTION_APP_NAME=<function app name>
 
-az login
 az account set --subscription "${AZURE_SUBSCRIPTION_ID}"
 az functionapp deployment source config-zip --resource-group "${AZURE_RESOURCE_GROUP}" --name "${AZURE_FUNCTION_APP_NAME}" --src github-webhook-mirror.zip
 ```
@@ -148,14 +129,11 @@ That should take you to the Function App's page. You should see your Function li
 
 #### Finding the Functions App's URL with the Azure CLI
 
-> **TODO**: test this
-
 ```bash
 AZURE_SUBSCRIPTION_ID=<subscription id>
 AZURE_RESOURCE_GROUP=<resource group name>
 AZURE_FUNCTION_APP_NAME=<function app name>
 
-az login
 az account set --subscription "${AZURE_SUBSCRIPTION_ID}"
 az functionapp show --resource-group "${AZURE_RESOURCE_GROUP}" --name "${AZURE_FUNCTION_APP_NAME}" --query "defaultHostName" --output tsv
 ```
@@ -194,7 +172,8 @@ You will need a name, a description, a homepage URL (which can just be `https://
 - leave the option selected to "Enable SSL verification"
 - select the events you want to receive, by giving the app the relevant additional permissions, and then selecting which events should be sent to the webhook
   - ⚠️ carefully think about the security implications of giving _anyone with write access_ to your repository access to these events before you choose the events
-- click on the "Generate a private key" button. This will automatically download the private key as a `.pem` file. Save the private key somewhere safe - this is the only time you get to download it, and you will need it later
+- click on the "Generate a private key" button. This will automatically download the private key as a `.pem` file.
+  - ⚠️ save the private key somewhere safe - _this is the only time you get to download it_, and you will need it later
 
 [The full GitHub docs](https://docs.github.com/en/enterprise-cloud@latest/apps/creating-github-apps/registering-a-github-app/registering-a-github-app) can help you if you get stuck.
 
@@ -202,7 +181,7 @@ You will need a name, a description, a homepage URL (which can just be `https://
 
 > **TODO**
 
-This is possible [using a manifest](https://docs.github.com/en/enterprise-cloud@latest/apps/sharing-github-apps/registering-a-github-app-from-a-manifest), but has not been implemented.
+This is possible [using a manifest](https://docs.github.com/en/enterprise-cloud@latest/apps/sharing-github-apps/registering-a-github-app-from-a-manifest), but has not yet been implemented here.
 
 ## Installing the GitHub App
 
@@ -217,7 +196,9 @@ You need to install the GitHub App on an organization or repository.
 
 > **TODO**
 
-This is left until the creation of the app has been implemented.
+This has not been implemented yet.
+
+This is left until the creation of the app using a manifest has been implemented.
 
 ### Configuring the Functions App
 
@@ -252,7 +233,6 @@ AZURE_SUBSCRIPTION_ID=<subscription id>
 AZURE_RESOURCE_GROUP=<resource group name>
 AZURE_FUNCTION_APP_NAME=<function app name>
 
-az login
 az account set --subscription "${AZURE_SUBSCRIPTION_ID}"
-az functionapp config appsettings import --name "${AZURE_FUNCTION_APP_NAME}" --resource-group "${AZURE_RESOURCE_GROUP}" --source local.settings.json
+az functionapp config appsettings set --name "${AZURE_FUNCTION_APP_NAME}" --resource-group "${AZURE_RESOURCE_GROUP}" --settings @local.settings.json
 ```

@@ -33,6 +33,39 @@ sequenceDiagram
 - an Azure account on an Azure subscription
 - a GitHub account
 
+## Filter events
+
+Before you deploy, you can choose to set a declarative filter to apply to GitHub events you receive in the Azure Functions App. This is in addition to selecting the events you choose to listen for in the GitHub App.
+
+This is done in the `fiter.yml` file, with the format shown in `filter.yml.example` and below:
+
+```yaml
+# Path: filter.yml
+
+# filter webhook events by type and payload, declaratively
+
+include:
+  secret_scanning_alert:
+    action: [created, dismissed, resolved, reopened]
+
+exclude:
+  secret_scanning_alert:
+    action: reopened
+  secret_scanning_alert_location:
+
+```
+
+The corresponding exclude filter for an event name is applied after the include filter.
+
+This example will include any event named `secret_scanning_alert` with an action of `created`, `dismissed`, or `resolved`, `reopened` and will exclude any event named `secret_scanning_alert` with an action of `reopened`. It will also exclude any event named `secret_scanning_alert_location`.
+
+The presence of an include filter here means that excluding `secret_scanning_alert_location` is redundant, as it will never be included in the first place, but it is included to show the syntax.
+
+If you do not want to use a filter, you can delete the `filter.yml` file, or leave it empty.
+
+You do not need to provide both an `include` and `exclude` key.
+
+
 ## Installing
 
 See [INSTALL.md](INSTALL.md) for details.
