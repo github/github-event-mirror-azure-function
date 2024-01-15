@@ -12,6 +12,36 @@ Once that is done, you can create an Actions workflow on any repository that the
 
 You need to create an Azure Function App, and deploy the Azure Function to it.
 
+Before you deploy, you can choose to set a declarative filter for the GitHub events you want to listen for.
+
+This is done in the `fiter.yml` file, with the format shown in `filter.yml.example` and below:
+
+```yaml
+# Path: filter.yml
+
+# filter webhook events by type and payload, declaratively
+
+include:
+  secret_scanning_alert:
+    action: [created, dismissed, resolved, reopened]
+
+exclude:
+  secret_scanning_alert:
+    action: reopened
+  secret_scanning_alert_location:
+
+```
+
+The corresponding exclude filter for an event name is applied after the include filter.
+
+This example will include any event named `secret_scanning_alert` with an action of `created`, `dismissed`, or `resolved`, `reopened` and will exclude any event named `secret_scanning_alert` with an action of `reopened`. It will also exclude any event named `secret_scanning_alert_location`.
+
+The presence of an include filter here means that excluding `secret_scanning_alert_location` is redundant, as it will never be included in the first place, but it is included to show the syntax.
+
+If you do not want to use a filter, you can delete the `filter.yml` file, or leave it empty.
+
+You do not need to provide both an `include` and `exclude` key.
+
 ### Creating the Functions App
 
 You can use the Azure Portal, the Azure CLI, or the VSCode Azure Functions extension to do this.

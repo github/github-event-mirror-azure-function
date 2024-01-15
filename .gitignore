@@ -101,3 +101,7 @@ __azurite_db*__.json
 # local scripts
 *.sh
 *.zip
+
+# filter settings - don't commit this, just commit filter.yml.example
+# if you fork this repo, you can uncomment this and commit your own filter.yml
+filter.yml
