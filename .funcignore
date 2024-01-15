@@ -1,7 +1,9 @@
 *.js.map
 *.ts
-.git*
-.vscode
+.gitignore
+.git/
+.github/
+.vscode/
 __azurite_db*__.json
 __blobstorage__
 __queuestorage__
@@ -10,5 +12,11 @@ test
 tsconfig.json
 *.sh
 *.zip
-README.md
 node_modules/.bin
+filter.yml.example
+LICENSE
+CODEOWNERS
+.eslint*
+*.md
+jest.config.js
+test/
