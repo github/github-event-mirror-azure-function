@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@azure/functions": "^4.0.0",
-    "@probot/adapter-azure-functions": "^1.1.0",
+    "@probot/adapter-azure-functions": "github:probot/adapter-azure-functions#4a0f805a7916c07e6dd9d7f1c29e1e75ea72d190",
     "yaml": "^2.3.4"
   },
   "devDependencies": {
@@ -23,7 +23,7 @@
     "jest": "^29.7.0",
     "nock": "^13.3.8",
     "prettier": "3.1.1",
-    "probot": "^12.3.3",
+    "probot": "^13.4.5",
     "rimraf": "^5.0.0",
     "smee-client": "^2.0.1",
     "ts-jest": "^29.1.1",
