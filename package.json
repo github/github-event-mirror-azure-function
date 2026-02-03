@@ -11,7 +11,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@azure/functions": "^4.0.0",
+    "@azure/functions": "^4.11.0",
     "@probot/adapter-azure-functions": "github:probot/adapter-azure-functions#4a0f805a7916c07e6dd9d7f1c29e1e75ea72d190",
     "yaml": "^2.3.4"
   },
