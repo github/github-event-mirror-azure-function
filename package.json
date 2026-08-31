@@ -29,5 +29,10 @@
     "ts-jest": "^29.1.1",
     "typescript": "^4.0.0"
   },
-  "main": "dist/src/functions/azureprobot.js"
+  "main": "dist/src/functions/azureprobot.js",
+  "overrides": {
+    "glob@10.5.0": {
+      "minimatch": "9.0.7"
+    }
+  }
 }
