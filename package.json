@@ -36,7 +36,7 @@
     "glob@>=10.0.0": {
       "minimatch": "9.0.7",
       "brace-expansion@^1.1.7": "1.1.18"
-    },
-    "main": "dist/src/functions/azureprobot.js"
-  }
+    }
+  },
+  "main": "dist/src/functions/azureprobot.js"
 }
