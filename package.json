@@ -38,6 +38,9 @@
       "brace-expansion@^1.1.7": "1.1.18"
     },
     "@babel/core": "7.29.6",
-    "@opentelemetry/core": "2.8.0"
+    "@opentelemetry/core": "2.8.0",
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "9.0.7"
+    }
   }
 }
